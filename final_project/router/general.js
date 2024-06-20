@@ -57,39 +57,59 @@ public_users.post('/register', (req, res) => {
 
 // Task 10: Get all books – Using async callback function
 public_users.get('/async/books', async (req, res) => {
-  try {
-    const result = await axios.get('http://localhost:5000/');
-    res.status(200).json(result.data);
-  } catch (error) {
-    res.status(500).json({ message: "Error fetching books" });
-  }
+  // Simulate async operation with setTimeout
+  setTimeout(() => {
+    res.status(200).json(books);
+  }, 1000); // 1-second delay to simulate async operation
 });
 
 // Task 11: Search by ISBN – Using Promises
 public_users.get('/async/isbn/:isbn', (req, res) => {
   const isbn = req.params.isbn;
-  axios.get(`http://localhost:5000/isbn/${isbn}`)
-    .then(response => res.status(200).json(response.data))
-    .catch(error => res.status(500).json({ message: "Error fetching book by ISBN" }));
+  new Promise((resolve, reject) => {
+    const book = books[isbn];
+    if (book) {
+      resolve(book);
+    } else {
+      reject("Book not found");
+    }
+  })
+  .then(book => {
+    res.status(200).json(book);
+  })
+  .catch(error => {
+    res.status(404).json({ message: error });
+  });
 });
 
-// Task 12: Search by Author
+// Task 12: Search by Author – Using async/await
 public_users.get('/async/author/:author', async (req, res) => {
   try {
     const author = req.params.author;
-    const result = await axios.get(`http://localhost:5000/author/${author}`);
-    res.status(200).json(result.data);
+    const filteredBooks = Object.values(books).filter(book => book.author === author);
+    if (filteredBooks.length > 0) {
+      res.status(200).json(filteredBooks);
+    } else {
+      res.status(404).json({ message: "Book not found" });
+    }
   } catch (error) {
-    res.status(500).json({ message: "Error fetching books by author" });
+    res.status(500).json({ message: "Error fetching books" });
   }
 });
 
-// Task 13: Search by Title
-public_users.get('/async/title/:title', (req, res) => {
-  const title = req.params.title;
-  axios.get(`http://localhost:5000/title/${title}`)
-    .then(response => res.status(200).json(response.data))
-    .catch(error => res.status(500).json({ message: "Error fetching books by title" }));
+// Task 13: Search by Title – Using async/await
+public_users.get('/async/title/:title', async (req, res) => {
+  try {
+    const title = req.params.title;
+    const filteredBooks = Object.values(books).filter(book => book.title === title);
+    if (filteredBooks.length > 0) {
+      res.status(200).json(filteredBooks);
+    } else {
+      res.status(404).json({ message: "Book not found" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching books" });
+  }
 });
 
 module.exports.general = public_users;
